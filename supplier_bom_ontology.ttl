@@ -1,0 +1,207 @@
+@prefix : <http://example.org/supplier_bom#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://example.org/supplier_bom> .
+
+<http://example.org/supplier_bom> rdf:type owl:Ontology ;
+    rdfs:label "Supplier BOM Ontology"@en ;
+    rdfs:comment "供應商 BOM 物料清單本體 - 用於產品、物料和 BOM 關係的語義描述"@zh .
+
+#################################################################
+#    Object Properties (物件屬性)
+#################################################################
+
+###  http://example.org/supplier_bom#hasBOMItem
+:hasBOMItem rdf:type owl:ObjectProperty ;
+    rdfs:domain :Product ;
+    rdfs:range :BOMItem ;
+    rdfs:label "has BOM item"@en ,
+               "包含 BOM 項目"@zh ;
+    rdfs:comment "連接產品與其 BOM 項目"@zh .
+
+###  http://example.org/supplier_bom#usesMaterial
+:usesMaterial rdf:type owl:ObjectProperty ;
+    rdfs:domain :BOMItem ;
+    rdfs:range :Material ;
+    rdfs:label "uses material"@en ,
+               "使用物料"@zh ;
+    rdfs:comment "連接 BOM 項目與其使用的物料"@zh .
+
+###  http://example.org/supplier_bom#hasManufacturer
+:hasManufacturer rdf:type owl:ObjectProperty ;
+    rdfs:domain :Product ;
+    rdfs:range :Manufacturer ;
+    rdfs:label "has manufacturer"@en ,
+               "製造商"@zh .
+
+###  http://example.org/supplier_bom#hasAttribute
+:hasAttribute rdf:type owl:ObjectProperty ;
+    rdfs:domain :Material ;
+    rdfs:range :Attribute ;
+    rdfs:label "has attribute"@en ,
+               "具有屬性"@zh .
+
+#################################################################
+#    Data Properties (資料屬性)
+#################################################################
+
+###  Product Properties
+:productCode rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Product ;
+    rdfs:range xsd:string ;
+    rdfs:label "product code"@en ,
+               "產品代碼"@zh .
+
+:dasinCodeCopper rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Product ;
+    rdfs:range xsd:string ;
+    rdfs:label "DASIN code (copper wire)"@en ,
+               "DASIN 代碼(銅線)"@zh .
+
+:dasinCodeAluminum rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Product ;
+    rdfs:range xsd:string ;
+    rdfs:label "DASIN code (aluminum wire)"@en ,
+               "DASIN 代碼(鋁線)"@zh .
+
+:voltage rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Product ;
+    rdfs:range xsd:string ;
+    rdfs:label "voltage"@en ,
+               "電壓"@zh .
+
+:customer rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Product ;
+    rdfs:range xsd:string ;
+    rdfs:label "customer"@en ,
+               "客戶"@zh .
+
+:color rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Product ;
+    rdfs:range xsd:string ;
+    rdfs:label "color"@en ,
+               "顏色"@zh .
+
+:dateCreated rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Product ;
+    rdfs:range xsd:string ;
+    rdfs:label "date created"@en ,
+               "建立日期"@zh .
+
+:notes rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Product ;
+    rdfs:range xsd:string ;
+    rdfs:label "notes"@en ,
+               "備註"@zh .
+
+###  Material Properties
+:materialCode rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Material ;
+    rdfs:range xsd:string ;
+    rdfs:label "material code"@en ,
+               "物料代碼"@zh .
+
+:materialName rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Material ;
+    rdfs:range xsd:string ;
+    rdfs:label "material name"@en ,
+               "物料名稱"@zh .
+
+:unit rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Material ;
+    rdfs:range xsd:string ;
+    rdfs:label "unit"@en ,
+               "單位"@zh .
+
+:specification rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Material ;
+    rdfs:range xsd:string ;
+    rdfs:label "specification"@en ,
+               "規格"@zh .
+
+###  BOMItem Properties
+:sequenceNumber rdf:type owl:DatatypeProperty ;
+    rdfs:domain :BOMItem ;
+    rdfs:range xsd:integer ;
+    rdfs:label "sequence number"@en ,
+               "序號"@zh .
+
+:quantity rdf:type owl:DatatypeProperty ;
+    rdfs:domain :BOMItem ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "quantity"@en ,
+               "數量"@zh .
+
+:baseNumber rdf:type owl:DatatypeProperty ;
+    rdfs:domain :BOMItem ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "base number"@en ,
+               "基數"@zh .
+
+:attributeType rdf:type owl:DatatypeProperty ;
+    rdfs:domain :BOMItem ;
+    rdfs:range xsd:string ;
+    rdfs:label "attribute type"@en ,
+               "屬性類型"@zh ;
+    rdfs:comment "M:自製, P:採購"@zh .
+
+#################################################################
+#    Classes (類別)
+#################################################################
+
+###  http://example.org/supplier_bom#Product
+:Product rdf:type owl:Class ;
+    rdfs:label "Product"@en ,
+               "產品"@zh ;
+    rdfs:comment "電機產品,如風扇等"@zh .
+
+###  http://example.org/supplier_bom#BOMItem
+:BOMItem rdf:type owl:Class ;
+    rdfs:label "BOM Item"@en ,
+               "BOM 項目"@zh ;
+    rdfs:comment "物料清單中的單個項目,連接產品與物料"@zh .
+
+###  http://example.org/supplier_bom#Material
+:Material rdf:type owl:Class ;
+    rdfs:label "Material"@en ,
+               "物料"@zh ;
+    rdfs:comment "產品所需的原物料、零組件"@zh .
+
+###  http://example.org/supplier_bom#Manufacturer
+:Manufacturer rdf:type owl:Class ;
+    rdfs:label "Manufacturer"@en ,
+               "製造商"@zh .
+
+###  http://example.org/supplier_bom#Attribute
+:Attribute rdf:type owl:Class ;
+    rdfs:label "Attribute"@en ,
+               "屬性"@zh ;
+    rdfs:comment "物料屬性,如自製(M)或採購(P)"@zh .
+
+###  http://example.org/supplier_bom#SelfMade
+:SelfMade rdf:type owl:Class ;
+    rdfs:subClassOf :Attribute ;
+    rdfs:label "Self Made"@en ,
+               "自製"@zh .
+
+###  http://example.org/supplier_bom#Purchased
+:Purchased rdf:type owl:Class ;
+    rdfs:subClassOf :Attribute ;
+    rdfs:label "Purchased"@en ,
+               "採購"@zh .
+
+#################################################################
+#    Individuals (實例)
+#################################################################
+
+###  Attribute Instances
+:AttributeSelfMade rdf:type owl:NamedIndividual ,
+                           :SelfMade ;
+    rdfs:label "M:自製"@zh .
+
+:AttributePurchased rdf:type owl:NamedIndividual ,
+                            :Purchased ;
+    rdfs:label "P:採購"@zh .

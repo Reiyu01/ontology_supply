@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  ontop:
+    image: ontop/ontop-endpoint:latest
+    container_name: supplier_bom_ontop
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./supplier_bom.db:/opt/ontop/input/supplier_bom.db
+      - ./supplier_bom_ontology.ttl:/opt/ontop/input/supplier_bom_ontology.ttl
+      - ./supplier_bom.obda:/opt/ontop/input/supplier_bom.obda
+      - ./supplier_bom.properties:/opt/ontop/input/supplier_bom.properties
+    environment:
+      - ONTOP_ONTOLOGY_FILE=/opt/ontop/input/supplier_bom_ontology.ttl
+      - ONTOP_MAPPING_FILE=/opt/ontop/input/supplier_bom.obda
+      - ONTOP_PROPERTIES_FILE=/opt/ontop/input/supplier_bom.properties
+      - ONTOP_PORTAL_FILE=/opt/ontop/input/supplier_bom.portal.toml
+      - ONTOP_CORS_ALLOWED_ORIGINS=*
+    restart: unless-stopped
+    networks:
+      - ontop_network
+
+networks:
+  ontop_network:
+    driver: bridge

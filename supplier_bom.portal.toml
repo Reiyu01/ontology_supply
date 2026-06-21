@@ -1,0 +1,151 @@
+[options]
+title = "Supplier BOM Knowledge Graph"
+description = "供應商 BOM 物料清單虛擬知識圖譜 - 使用 Ontop 將關聯式資料庫虛擬化為語義知識圖譜"
+version = "1.0.0"
+
+[[tabGroups]]
+name = "產品查詢 (Product Queries)"
+
+  [[tabGroups.tabs]]
+  name = "所有產品"
+  query = """
+    PREFIX : <http://example.org/supplier_bom#>
+    SELECT ?product ?productCode ?voltage ?customer ?color
+    WHERE {
+      ?product a :Product ;
+               :productCode ?productCode ;
+               :voltage ?voltage ;
+               :customer ?customer ;
+               :color ?color .
+    }
+    LIMIT 100
+  """
+
+  [[tabGroups.tabs]]
+  name = "產品及其 BOM 項目數量"
+  query = """
+    PREFIX : <http://example.org/supplier_bom#>
+    SELECT ?productCode (COUNT(?bomItem) AS ?itemCount)
+    WHERE {
+      ?product a :Product ;
+               :productCode ?productCode ;
+               :hasBOMItem ?bomItem .
+    }
+    GROUP BY ?productCode
+  """
+
+  [[tabGroups.tabs]]
+  name = "特定產品的完整 BOM"
+  query = """
+    PREFIX : <http://example.org/supplier_bom#>
+    SELECT ?productCode ?materialCode ?materialName ?quantity ?unit ?specification
+    WHERE {
+      ?product a :Product ;
+               :productCode ?productCode ;
+               :hasBOMItem ?bomItem .
+      ?bomItem :usesMaterial ?material ;
+               :quantity ?quantity ;
+               :unit ?unit .
+      OPTIONAL { ?bomItem :specification ?specification . }
+      ?material :materialCode ?materialCode ;
+                :materialName ?materialName .
+      FILTER(?productCode = "DDB-1845")
+    }
+    ORDER BY ?materialCode
+  """
+
+[[tabGroups]]
+name = "物料查詢 (Material Queries)"
+
+  [[tabGroups.tabs]]
+  name = "所有物料"
+  query = """
+    PREFIX : <http://example.org/supplier_bom#>
+    SELECT ?materialCode ?materialName ?unit ?attributeType
+    WHERE {
+      ?material a :Material ;
+                :materialCode ?materialCode ;
+                :materialName ?materialName ;
+                :unit ?unit ;
+                :attributeType ?attributeType .
+    }
+    LIMIT 100
+  """
+
+  [[tabGroups.tabs]]
+  name = "自製物料"
+  query = """
+    PREFIX : <http://example.org/supplier_bom#>
+    SELECT ?materialCode ?materialName ?unit
+    WHERE {
+      ?material a :Material ;
+                :materialCode ?materialCode ;
+                :materialName ?materialName ;
+                :unit ?unit ;
+                :attributeType ?attr .
+      FILTER(CONTAINS(?attr, "M:"))
+    }
+    LIMIT 100
+  """
+
+  [[tabGroups.tabs]]
+  name = "採購物料"
+  query = """
+    PREFIX : <http://example.org/supplier_bom#>
+    SELECT ?materialCode ?materialName ?unit
+    WHERE {
+      ?material a :Material ;
+                :materialCode ?materialCode ;
+                :materialName ?materialName ;
+                :unit ?unit ;
+                :attributeType ?attr .
+      FILTER(CONTAINS(?attr, "P:"))
+    }
+    LIMIT 100
+  """
+
+[[tabGroups]]
+name = "分析查詢 (Analytics)"
+
+  [[tabGroups.tabs]]
+  name = "物料使用頻率"
+  query = """
+    PREFIX : <http://example.org/supplier_bom#>
+    SELECT ?materialCode ?materialName (COUNT(DISTINCT ?product) AS ?usedInProducts)
+    WHERE {
+      ?product :hasBOMItem ?bomItem .
+      ?bomItem :usesMaterial ?material .
+      ?material :materialCode ?materialCode ;
+                :materialName ?materialName .
+    }
+    GROUP BY ?materialCode ?materialName
+    ORDER BY DESC(?usedInProducts)
+    LIMIT 50
+  """
+
+  [[tabGroups.tabs]]
+  name = "產品物料總用量"
+  query = """
+    PREFIX : <http://example.org/supplier_bom#>
+    SELECT ?productCode (SUM(?quantity) AS ?totalQuantity) (COUNT(?bomItem) AS ?itemCount)
+    WHERE {
+      ?product a :Product ;
+               :productCode ?productCode ;
+               :hasBOMItem ?bomItem .
+      ?bomItem :quantity ?quantity .
+    }
+    GROUP BY ?productCode
+  """
+
+  [[tabGroups.tabs]]
+  name = "依單位統計物料"
+  query = """
+    PREFIX : <http://example.org/supplier_bom#>
+    SELECT ?unit (COUNT(?material) AS ?materialCount)
+    WHERE {
+      ?material a :Material ;
+                :unit ?unit .
+    }
+    GROUP BY ?unit
+    ORDER BY DESC(?materialCount)
+  """

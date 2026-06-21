@@ -1,0 +1,56 @@
+[
+  {
+    "natural_language": "列出所有產品",
+    "sparql": "PREFIX : <http://example.org/supplier_bom#>\nSELECT ?productCode ?voltage ?customer ?color\nWHERE {\n  ?product a :Product ;\n           :productCode ?productCode ;\n           :voltage ?voltage ;\n           :customer ?customer ;\n           :color ?color .\n}",
+    "domain": "supplier_bom",
+    "complexity": "basic"
+  },
+  {
+    "natural_language": "DDB-1845 的物料清單是什麼",
+    "sparql": "PREFIX : <http://example.org/supplier_bom#>\nSELECT ?materialCode ?materialName ?quantity ?unit ?specification\nWHERE {\n  ?product a :Product ;\n           :productCode \"DDB-1845\" ;\n           :hasBOMItem ?bomItem .\n  ?bomItem :usesMaterial ?material ;\n           :quantity ?quantity ;\n           :unit ?unit .\n  OPTIONAL { ?bomItem :specification ?specification . }\n  ?material :materialCode ?materialCode ;\n            :materialName ?materialName .\n}\nORDER BY ?materialCode",
+    "domain": "supplier_bom",
+    "complexity": "medium"
+  },
+  {
+    "natural_language": "哪些物料被多個產品共用",
+    "sparql": "PREFIX : <http://example.org/supplier_bom#>\nSELECT ?materialCode ?materialName (COUNT(DISTINCT ?product) AS ?usedInProducts)\nWHERE {\n  ?product :hasBOMItem ?bomItem .\n  ?bomItem :usesMaterial ?material .\n  ?material :materialCode ?materialCode ;\n            :materialName ?materialName .\n}\nGROUP BY ?materialCode ?materialName\nHAVING (COUNT(DISTINCT ?product) > 1)\nORDER BY DESC(?usedInProducts)",
+    "domain": "supplier_bom",
+    "complexity": "medium"
+  },
+  {
+    "natural_language": "多少物料是自製的,多少是採購的",
+    "sparql": "PREFIX : <http://example.org/supplier_bom#>\nSELECT ?attributeType (COUNT(?material) AS ?count)\nWHERE {\n  ?material a :Material ;\n            :attributeType ?attributeType .\n}\nGROUP BY ?attributeType",
+    "domain": "supplier_bom",
+    "complexity": "basic"
+  },
+  {
+    "natural_language": "哪些產品使用了 P-092-13 這個物料",
+    "sparql": "PREFIX : <http://example.org/supplier_bom#>\nSELECT DISTINCT ?productCode ?quantity ?unit\nWHERE {\n  ?product a :Product ;\n           :productCode ?productCode ;\n           :hasBOMItem ?bomItem .\n  ?bomItem :usesMaterial ?material ;\n           :quantity ?quantity ;\n           :unit ?unit .\n  ?material :materialCode \"P-092-13\" .\n}",
+    "domain": "supplier_bom",
+    "complexity": "medium"
+  },
+  {
+    "natural_language": "哪個產品最複雜(最多零件)",
+    "sparql": "PREFIX : <http://example.org/supplier_bom#>\nSELECT ?productCode (COUNT(?bomItem) AS ?componentCount)\nWHERE {\n  ?product a :Product ;\n           :productCode ?productCode ;\n           :hasBOMItem ?bomItem .\n}\nGROUP BY ?productCode\nORDER BY DESC(?componentCount)",
+    "domain": "supplier_bom",
+    "complexity": "medium"
+  },
+  {
+    "natural_language": "找出所有的電機相關物料",
+    "sparql": "PREFIX : <http://example.org/supplier_bom#>\nSELECT ?materialCode ?materialName ?unit\nWHERE {\n  ?material a :Material ;\n            :materialCode ?materialCode ;\n            :materialName ?materialName ;\n            :unit ?unit .\n  FILTER(CONTAINS(LCASE(?materialName), \"motor\") || CONTAINS(LCASE(?materialName), \"quạt\"))\n}",
+    "domain": "supplier_bom",
+    "complexity": "basic"
+  },
+  {
+    "natural_language": "產品有哪些版本差異",
+    "sparql": "PREFIX : <http://example.org/supplier_bom#>\nSELECT ?productCode ?dasinCodeCopper ?dasinCodeAluminum\nWHERE {\n  ?product a :Product ;\n           :productCode ?productCode ;\n           :dasinCodeCopper ?dasinCodeCopper ;\n           :dasinCodeAluminum ?dasinCodeAluminum .\n}",
+    "domain": "supplier_bom",
+    "complexity": "basic"
+  },
+  {
+    "natural_language": "物料使用頻率排名",
+    "sparql": "PREFIX : <http://example.org/supplier_bom#>\nSELECT ?materialCode ?materialName (COUNT(DISTINCT ?product) AS ?usedInProducts)\nWHERE {\n  ?product :hasBOMItem ?bomItem .\n  ?bomItem :usesMaterial ?material .\n  ?material :materialCode ?materialCode ;\n            :materialName ?materialName .\n}\nGROUP BY ?materialCode ?materialName\nORDER BY DESC(?usedInProducts)\nLIMIT 50",
+    "domain": "supplier_bom",
+    "complexity": "medium"
+  }
+]

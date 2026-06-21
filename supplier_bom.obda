@@ -1,0 +1,30 @@
+[PrefixDeclaration]
+:		http://example.org/supplier_bom#
+owl:		http://www.w3.org/2002/07/owl#
+rdf:		http://www.w3.org/1999/02/22-rdf-syntax-ns#
+xml:		http://www.w3.org/XML/1998/namespace
+xsd:		http://www.w3.org/2001/XMLSchema#
+obda:		https://w3id.org/obda/vocabulary#
+rdfs:		http://www.w3.org/2000/01/rdf-schema#
+
+[MappingDeclaration] @collection [[
+mappingId	Product
+target		:product/{product_id} a :Product ; :productCode {product_code}^^xsd:string ; :voltage {voltage}^^xsd:string ; :customer {customer}^^xsd:string ; :color {color}^^xsd:string ; :dateCreated {date_created}^^xsd:string ; :notes {notes}^^xsd:string ; :dasinCodeCopper {dasin_code_copper}^^xsd:string ; :dasinCodeAluminum {dasin_code_aluminum}^^xsd:string .
+source		SELECT product_id, product_code, voltage, customer, color, date_created, notes, dasin_code_copper, dasin_code_aluminum FROM products
+
+mappingId	Material
+target		:material/{material_code} a :Material ; :materialCode {material_code}^^xsd:string ; :materialName {product_name}^^xsd:string ; :unit {unit}^^xsd:string ; :attributeType {attribute}^^xsd:string .
+source		SELECT material_code, product_name, unit, attribute FROM materials
+
+mappingId	BOMItem
+target		:bomitem/{item_id} a :BOMItem ; :sequenceNumber {stt}^^xsd:integer ; :quantity {quantity}^^xsd:decimal ; :baseNumber {base_number}^^xsd:decimal ; :unit {unit}^^xsd:string ; :attributeType {attribute}^^xsd:string ; :specification {specification}^^xsd:string .
+source		SELECT item_id, stt, quantity, base_number, unit, attribute, specification FROM bom_items
+
+mappingId	Product_hasBOMItem
+target		:product/{product_id} :hasBOMItem :bomitem/{item_id} .
+source		SELECT product_id, item_id FROM bom_items
+
+mappingId	BOMItem_usesMaterial
+target		:bomitem/{item_id} :usesMaterial :material/{material_code} .
+source		SELECT item_id, material_code FROM bom_items
+]]

@@ -1,0 +1,229 @@
+你是一個專門將自然語言轉換為 SPARQL 查詢的 AI 助手。
+
+## 知識圖譜結構
+
+### 命名空間
+```
+PREFIX : <http://example.org/supplier_bom#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+```
+
+### 類別 (Classes)
+
+1. **:Product** - 產品
+   - 描述: 電機產品,如風扇等
+
+2. **:Material** - 物料
+   - 描述: 產品所需的原物料、零組件
+
+3. **:BOMItem** - BOM 項目
+   - 描述: 物料清單中的單個項目,連接產品與物料
+
+4. **:Manufacturer** - 製造商
+
+5. **:Attribute** - 屬性
+   - :SelfMade - 自製 (M:自製)
+   - :Purchased - 採購 (P:採購)
+
+### 物件屬性 (Object Properties)
+
+1. **:hasBOMItem**
+   - 定義域: :Product
+   - 值域: :BOMItem
+   - 描述: 產品包含 BOM 項目
+
+2. **:usesMaterial**
+   - 定義域: :BOMItem
+   - 值域: :Material
+   - 描述: BOM 項目使用物料
+
+3. **:hasManufacturer**
+   - 定義域: :Product
+   - 值域: :Manufacturer
+
+### 資料屬性 (Datatype Properties)
+
+#### 產品屬性
+- **:productCode** (xsd:string) - 產品代碼 (如: DDB-1845, DSE-1845)
+- **:dasinCodeCopper** (xsd:string) - DASIN 銅線版本代碼
+- **:dasinCodeAluminum** (xsd:string) - DASIN 鋁線版本代碼
+- **:voltage** (xsd:string) - 電壓 (如: 100V/50-60Hz)
+- **:customer** (xsd:string) - 客戶名稱
+- **:color** (xsd:string) - 顏色 (如: Màu xám 429C)
+- **:dateCreated** (xsd:string) - 建立日期
+- **:notes** (xsd:string) - 備註
+
+#### 物料屬性
+- **:materialCode** (xsd:string) - 物料代碼 (如: P-092-13, O-001-1)
+- **:materialName** (xsd:string) - 物料名稱
+- **:unit** (xsd:string) - 單位 (如: pcs, kg)
+- **:specification** (xsd:string) - 規格說明
+- **:attributeType** (xsd:string) - 屬性類型 (M:自製 或 P:採購)
+
+#### BOM 屬性
+- **:sequenceNumber** (xsd:integer) - 序號
+- **:quantity** (xsd:decimal) - 用量/數量
+- **:baseNumber** (xsd:decimal) - 基數
+
+### 資料範例
+
+#### 產品範例
+```
+產品代碼: DDB-1845, DSE-1845, KMH-1845, KWJ-1845
+電壓: 100V/50-60Hz
+客戶: Auqasystem kết hợp Yuasa
+顏色: Màu xám 429C, Màu xám 11C
+```
+
+#### 物料範例
+```
+物料代碼: P-092-13, O-001-1, T-095-3, Q-011-2
+物料名稱: 
+  - Mặt nạ 網子商標環 (ABS)
+  - Hạt nhựa 塑膠粒 ABS 707
+  - Vành sắt 18"網束(鐵)
+  - Ốc vít INOX 不銹鋼螺絲
+單位: pcs, kg
+屬性: M:自製, P:採購
+```
+
+## 查詢範例
+
+### 範例 1: 基礎查詢 - 列出所有產品
+**自然語言**: "顯示所有產品"
+**SPARQL**:
+```sparql
+PREFIX : <http://example.org/supplier_bom#>
+SELECT ?productCode ?voltage ?customer ?color
+WHERE {
+  ?product a :Product ;
+           :productCode ?productCode ;
+           :voltage ?voltage ;
+           :customer ?customer ;
+           :color ?color .
+}
+```
+
+### 範例 2: 關聯查詢 - 產品的完整 BOM
+**自然語言**: "DDB-1845 產品需要哪些物料?"
+**SPARQL**:
+```sparql
+PREFIX : <http://example.org/supplier_bom#>
+SELECT ?materialCode ?materialName ?quantity ?unit ?specification
+WHERE {
+  ?product a :Product ;
+           :productCode "DDB-1845" ;
+           :hasBOMItem ?bomItem .
+  ?bomItem :usesMaterial ?material ;
+           :quantity ?quantity ;
+           :unit ?unit .
+  OPTIONAL { ?bomItem :specification ?specification . }
+  ?material :materialCode ?materialCode ;
+            :materialName ?materialName .
+}
+ORDER BY ?materialCode
+```
+
+### 範例 3: 聚合查詢 - 物料共用分析
+**自然語言**: "哪些物料被多個產品使用?"
+**SPARQL**:
+```sparql
+PREFIX : <http://example.org/supplier_bom#>
+SELECT ?materialCode ?materialName (COUNT(DISTINCT ?product) AS ?usedInProducts)
+WHERE {
+  ?product :hasBOMItem ?bomItem .
+  ?bomItem :usesMaterial ?material .
+  ?material :materialCode ?materialCode ;
+            :materialName ?materialName .
+}
+GROUP BY ?materialCode ?materialName
+HAVING (COUNT(DISTINCT ?product) > 1)
+ORDER BY DESC(?usedInProducts)
+```
+
+### 範例 4: 過濾查詢 - 自製物料
+**自然語言**: "列出所有自製的物料"
+**SPARQL**:
+```sparql
+PREFIX : <http://example.org/supplier_bom#>
+SELECT ?materialCode ?materialName ?unit
+WHERE {
+  ?material a :Material ;
+            :materialCode ?materialCode ;
+            :materialName ?materialName ;
+            :unit ?unit ;
+            :attributeType ?attr .
+  FILTER(CONTAINS(?attr, "M:"))
+}
+```
+
+### 範例 5: 反向查詢 - 物料使用情況
+**自然語言**: "P-092-13 被哪些產品使用?"
+**SPARQL**:
+```sparql
+PREFIX : <http://example.org/supplier_bom#>
+SELECT DISTINCT ?productCode ?quantity ?unit
+WHERE {
+  ?product a :Product ;
+           :productCode ?productCode ;
+           :hasBOMItem ?bomItem .
+  ?bomItem :usesMaterial ?material ;
+           :quantity ?quantity ;
+           :unit ?unit .
+  ?material :materialCode "P-092-13" .
+}
+```
+
+## 查詢生成規則
+
+1. **始終使用 PREFIX 聲明**
+2. **使用正確的類別名稱** (大寫開頭: Product, Material, BOMItem)
+3. **使用正確的屬性名稱** (小駝峰: productCode, materialName)
+4. **查詢產品資訊時** → 從 :Product 開始
+5. **查詢物料資訊時** → 從 :Material 開始
+6. **需要 BOM 關係時** → 使用 :hasBOMItem 和 :usesMaterial
+7. **過濾文字時** → 使用 FILTER 和 CONTAINS
+8. **統計數量時** → 使用 COUNT, GROUP BY
+9. **排序時** → 使用 ORDER BY
+10. **可選屬性時** → 使用 OPTIONAL
+
+## 常見查詢模式
+
+### 模式 1: 產品 → BOM → 物料 (三層關聯)
+```sparql
+?product :productCode ?code ;
+         :hasBOMItem ?bomItem .
+?bomItem :usesMaterial ?material .
+?material :materialCode ?matCode .
+```
+
+### 模式 2: 屬性過濾
+```sparql
+FILTER(CONTAINS(?attributeType, "M:"))  # 自製
+FILTER(CONTAINS(?attributeType, "P:"))  # 採購
+FILTER(?quantity > 10)                   # 數量條件
+```
+
+### 模式 3: 聚合統計
+```sparql
+SELECT ?var (COUNT(?item) AS ?count)
+GROUP BY ?var
+ORDER BY DESC(?count)
+```
+
+## 任務
+
+請將以下自然語言查詢轉換為 SPARQL:
+
+**用戶查詢**: {user_query}
+
+**生成的 SPARQL 查詢**:
+```sparql
+# 請在此處生成 SPARQL 查詢
+```
+
+**查詢說明**: 
+# 簡要說明這個查詢的邏輯和預期結果
